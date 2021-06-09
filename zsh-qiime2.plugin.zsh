@@ -27,13 +27,13 @@ function prompt_qiime2() {
 }
 
 function get_latest_q2_dev_version() {
-  latest_q2_tag=$(git ls-remote --tags --refs --sort 'v:refname' git@github.com:qiime2/qiime2.git | tail -1)
+  latest_q2_tag=$(git ls-remote --tags --refs --sort 'v:refname' https://github.com/qiime2/qiime2.git | tail -1)
   QIIME2_LATEST_DEV_VERSION=$(echo $latest_q2_tag | sed 's/.*tags\///' | xargs)
   QIIME2_LATEST_DEV_RELEASE=$(echo $QIIME2_LATEST_DEV_VERSION | sed 's/\.[0-9]*\.dev.*$//' | xargs)
 }
 
 function get_latest_q2_prod_version() {
-  latest_q2_tags=($(git ls-remote --tags --refs --sort '-v:refname' git@github.com:qiime2/qiime2.git | sed 's/.*tags\///'))
+  latest_q2_tags=($(git ls-remote --tags --refs --sort '-v:refname' https://github.com/qiime2/qiime2.git | sed 's/.*tags\///'))
   for tag in $latest_q2_tags
     do
       if [[ $tag = *dev* ]]
