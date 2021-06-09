@@ -51,15 +51,19 @@ After sourcing the configuration file (or restarting your terminal), you should 
 
 #### Functions
 
-* `set_up_q2_full_env` - sets up a full QIIME 2 conda environment, using the latest QIIME 2 release (equivalent to 
+* `set_up_full_env` - sets up a full QIIME 2 conda environment, using the latest QIIME 2 release (equivalent to 
   what is described in the [documentation](https://docs.qiime2.org) under [Native installation](https://docs.qiime2.org/2021.4/install/native/#install-qiime-2-within-a-conda-environment) 
   section)
-* `set_up_q2_base_env`- sets up a minimal QIIME 2 environment (qiime2, q2cli, q2-types), using the latest **dev** release
     ```shell
-    set_up_q2_base_env <env_name>
+    set_up_full_env <env_name>
     ```
     where `env_name` is the name for the new conda environment
-* `set_up_env`- adds a couple of useful dev packages to an existing environment (q2lint, flake8, coverage, wget, pytest-xdist)
+* `set_up_dev_env`- sets up a minimal QIIME 2 environment (qiime2, q2cli, q2-types), using the latest **dev** release
+    ```shell
+    set_up_dev_env <env_name>
+    ```
+    where `env_name` is the name for the new conda environment
+* `extend_env`- adds a couple of useful dev packages to an existing environment (q2lint, flake8, coverage, wget, pytest-xdist)
 * `build_conda_pkg`- builds and tests a conda package for QIIME 2 plugins:
     ```shell
     build_conda_pkg <package_name> <qiime2_version> <os>
