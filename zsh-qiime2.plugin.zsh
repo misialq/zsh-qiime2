@@ -98,9 +98,10 @@ function set_up_q2_full_env() {
 
   get_latest_q2_prod_version
   echo "${COL}The latest available QIIME2 version is ${QIIME2_LATEST_PROD_RELEASE}.${NC}"
-  echo "${COL}Creating a full qiime2-$VER_SHORT environment...${NC}"
 
   VER_SHORT=$(echo "$QIIME2_LATEST_PROD_RELEASE" | sed 's/\.[0-9]$//' | xargs)
+  echo "${COL}Creating a full qiime2-$VER_SHORT environment...${NC}"
+
   DOWNLOAD_LINK="https://data.qiime2.org/distro/core/qiime2-${VER_SHORT}-py38-${OS_VER}-conda.yml"
   ENV_FILE="env-spec-${VER_SHORT}.yaml"
   curl -sL "$DOWNLOAD_LINK" -o "$ENV_FILE"
