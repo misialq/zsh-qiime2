@@ -8,7 +8,7 @@ commands and a bonus command prompt modifier - see below for details.
 
 ### Installation
    
-* Typically, you would install custom plugins under `$ZSH_CUSTOM/plugins`, so the easiest way is to just clone this 
+* Typically, you would install plugins under `$ZSH_CUSTOM/plugins`, so the easiest way is to just clone this 
 entire repository to that location:
 
 ```shell
@@ -94,3 +94,5 @@ Should you encounter any issues whatsoever, feel free to reach out - this is sti
 of the plugin so there maybe a need of polishing this or that.
 
 **Happy QIIME'ing!**
+
+[![Buy me a coffee](img/bmc-button.png)](https://www.buymeacoffee.com/misialq)
