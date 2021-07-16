@@ -62,7 +62,7 @@ After sourcing the configuration file (or restarting your terminal), you should 
     ```shell
     set_up_dev_env <env_name>
     ```
-    where `env_name` is the name for the new conda environment
+    where `env_name` is the name for the new conda environment; this function will also call `extend_env` (see below) so no need to run it again afterwards
 * `extend_env`- adds a couple of useful dev packages to an existing environment (q2lint, flake8, coverage, wget, pytest-xdist)
 * `build_conda_pkg`- builds and tests a conda package for QIIME 2 plugins:
     ```shell
