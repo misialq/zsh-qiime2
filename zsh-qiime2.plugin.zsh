@@ -55,18 +55,68 @@ function extend_env() {
   python -m pip install -q https://github.com/qiime2/q2lint/archive/master.zip
 }
 
+function unset_vars() {
+  unset COL
+  unset RED
+  unset NC
+  unset ENV_NAME
+  unset ENV_VERSION
+}
+
 function set_up_dev_env() {
-  get_latest_q2_dev_version
-  QIIME2_DEV_CHANNEL="https://packages.qiime2.org/qiime2/${QIIME2_LATEST_DEV_RELEASE}/staged"
-  ENV_NAME="$1"
+  # process args
+  OTHER_ARGS=()
+  while [[ $# -gt 0 ]];
+  do
+    key="$1"
+    case "${key}" in
+      -n|--name)
+        ENV_NAME="$2"
+        shift && shift;;
+      -v|--version)
+        ENV_VERSION="$2"
+        shift && shift;;
+      *)
+        OTHER_ARGS+=("$1")
+        shift;;
+    esac
+  done
+  set -- "${OTHER_ARGS[@]}"
+
   COL="\033[0;32m"
+  RED="\033[0;31m"
   NC="\033[0m"
 
+  get_latest_q2_dev_version
+
+  if [[ "${ENV_VERSION}" == "" ]]; then
+    ENV_VERSION="${QIIME2_LATEST_DEV_RELEASE}"
+  fi
   if [[ "${ENV_NAME}" == "" ]]; then
-    ENV_NAME="qiime2-${QIIME2_LATEST_DEV_RELEASE}"
+    ENV_NAME="qiime2-$ENV_VERSION"
   fi
 
-  echo "${COL}Creating conda environment (${ENV_NAME}) for QIIME 2 ${QIIME2_LATEST_DEV_VERSION}...${NC}"
+  AVAILABLE_VERS=$(git ls-remote --tags --refs --sort '-v:refname' https://github.com/qiime2/qiime2.git | sed 's/.*tags\///')
+  OLDER_VERS=("2020.11" "2021.2" "2021.4")
+  if ! printf '%s\n' "${AVAILABLE_VERS}" | grep -q "^${ENV_VERSION}.0.dev"; then
+    echo "${RED}Requested QIIME 2 version is incorrect. Please check your input and try again.${NC}"
+    unset_vars
+    return 1
+  fi
+
+  if printf '%s\n' "${OLDER_VERS[@]}" | grep -q "^${ENV_VERSION}$"; then
+    CHANNEL_TYPE="staged"
+  elif [[ ${ENV_VERSION:0:4} -le 2020 ]]; then
+    echo "${RED}Provided QIIME 2 version is not supported by this plugin. We only support versions from 2020.11.${NC}"
+    unset_vars
+    return 1
+  else
+    CHANNEL_TYPE="tested"
+  fi
+
+  QIIME2_DEV_CHANNEL="https://packages.qiime2.org/qiime2/${ENV_VERSION}/${CHANNEL_TYPE}"
+
+  echo "${COL}Creating a dev conda environment (${ENV_NAME}) for QIIME 2 ${ENV_VERSION}...${NC}"
   conda deactivate
   conda create -y -n "${ENV_NAME}" \
     -c "${QIIME2_DEV_CHANNEL}" -c conda-forge -c bioconda -c defaults \
@@ -74,17 +124,60 @@ function set_up_dev_env() {
 
   conda activate "$ENV_NAME"
   extend_env
-
-  unset COL
-  unset NC
-  unset ENV_NAME
+  unset_vars
 }
 
 function set_up_full_env() {
-  ENV_NAME="$1"
+  # process args
+  OTHER_ARGS=()
+  while [[ $# -gt 0 ]];
+  do
+    key="$1"
+    case "${key}" in
+      -n|--name)
+        ENV_NAME="$2"
+        shift && shift;;
+      -v|--version)
+        ENV_VERSION="$2"
+        shift && shift;;
+      *)
+        OTHER_ARGS+=("$1")
+        shift;;
+    esac
+  done
+  set -- "${OTHER_ARGS[@]}"
+
   COL="\033[0;32m"
   RED="\033[0;31m"
   NC="\033[0m" # NoColor
+
+  get_latest_q2_prod_version
+
+  if [[ "${ENV_VERSION}" == "" ]]; then
+    echo "${COL}The latest available QIIME2 version is ${QIIME2_LATEST_PROD_RELEASE}.${NC}"
+    ENV_VERSION=$(echo "${QIIME2_LATEST_PROD_RELEASE}" | sed 's/\.[0-9]$//' | xargs)
+  fi
+  if [[ "${ENV_NAME}" == "" ]]; then
+    ENV_NAME="qiime2-${ENV_VERSION}"
+  fi
+
+  AVAILABLE_VERS=$(git ls-remote --tags --refs --sort '-v:refname' https://github.com/qiime2/qiime2.git | sed 's/.*tags\///')
+  OLDER_VERS=("2020.11" "2021.2")
+  if ! printf '%s\n' "${AVAILABLE_VERS}" | grep -q "^${ENV_VERSION}.0$"; then
+    echo "${RED}Requested QIIME 2 version is incorrect. Please check your input and try again.${NC}"
+    unset_vars
+    return 1
+  elif [[ ${ENV_VERSION:0:4} -le 2020 ]]; then
+    echo "${RED}Provided QIIME 2 version is not supported by this plugin. We only support versions from 2020.11.${NC}"
+    unset_vars
+    return 1
+  fi
+
+  if printf '%s\n' "${OLDER_VERS[@]}" | grep -q "^${ENV_VERSION}$"; then
+    PY_VER="36"
+  else
+    PY_VER="38"
+  fi
 
   if [[ "$OSTYPE" == "linux"* ]]; then
     OS_VER="linux"
@@ -93,29 +186,20 @@ function set_up_full_env() {
   else
     echo "${RED}Detected OS version (${OSTYPE}) is not supported.${NC}"
     echo "${RED}Aborting.${NC}"
+    unset_vars
     return 1
   fi
 
-  get_latest_q2_prod_version
-  echo "${COL}The latest available QIIME2 version is ${QIIME2_LATEST_PROD_RELEASE}.${NC}"
-
-  VER_SHORT=$(echo "${QIIME2_LATEST_PROD_RELEASE}" | sed 's/\.[0-9]$//' | xargs)
-  if [[ "${ENV_NAME}" == "" ]]; then
-    ENV_NAME="qiime2-${VER_SHORT}"
-  fi
   echo "${COL}Creating a full ${ENV_NAME} environment...${NC}"
 
-  DOWNLOAD_LINK="https://data.qiime2.org/distro/core/qiime2-${VER_SHORT}-py38-${OS_VER}-conda.yml"
-  ENV_FILE="env-spec-${VER_SHORT}.yaml"
+  DOWNLOAD_LINK="https://data.qiime2.org/distro/core/qiime2-${ENV_VERSION}-py${PY_VER}-${OS_VER}-conda.yml"
+  ENV_FILE="env-spec-${ENV_VERSION}.yaml"
   curl -sL "${DOWNLOAD_LINK}" -o "${ENV_FILE}"
   conda env create -n "${ENV_NAME}" --file "${ENV_FILE}"
   rm "${ENV_FILE}"
 
   conda activate "${ENV_NAME}"
-
-  unset COL
-  unset NC
-  unset RED
+  unset_vars
 }
 
 function build_conda_pkg() {
@@ -186,7 +270,6 @@ function build_conda_pkg() {
   conda env remove -n "qiime2-${Q2V}-buildtest"
 
   echo "${COL}All done!${NC}"
-
 }
 
 ### Aliases

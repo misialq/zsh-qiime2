@@ -51,18 +51,25 @@ After sourcing the configuration file (or restarting your terminal), you should 
 
 #### Functions
 
-* `set_up_full_env` - sets up a full QIIME 2 conda environment, using the latest QIIME 2 release (equivalent to 
+* `set_up_full_env` - sets up a full QIIME 2 conda environment, using the desired QIIME 2 release (equivalent to 
   what is described in the [documentation](https://docs.qiime2.org) under [Native installation](https://docs.qiime2.org/2021.4/install/native/#install-qiime-2-within-a-conda-environment) 
-  section)
+  section). Running this function without any arguments will create a new environment using the latest available
+  QIIME 2 version.
     ```shell
-    set_up_full_env <env_name>
+    set_up_full_env [-n <env_name> -v <qiime_version>]
     ```
-    where `env_name` is the name for the new conda environment
-* `set_up_dev_env`- sets up a minimal QIIME 2 environment (qiime2, q2cli, q2-types), using the latest **dev** release
+    where:
+  - `env_name` is the name for the new conda environment
+  - `qiime_version` is the requested QIIME 2 version (in a format: _2021.11_; note that only **versions from 2020.11 on are supported**)
+* `set_up_dev_env`- sets up a minimal QIIME 2 environment (qiime2, q2cli, q2-types), using the desired **dev** release.
+  Running this function without any arguments will create a new environment using the latest available
+  QIIME 2 dev version.
     ```shell
-    set_up_dev_env <env_name>
+    set_up_dev_env [-n <env_name> -v <qiime_version>]
     ```
-    where `env_name` is the name for the new conda environment; this function will also call `extend_env` (see below) so no need to run it again afterwards
+  where:
+  - `env_name` is the name for the new conda environment
+  - `qiime_version` is the requested QIIME 2 version (in a format: _2021.11_; note that only **versions from 2020.11 on are supported**)
 * `extend_env`- adds a couple of useful dev packages to an existing environment (q2lint, flake8, coverage, wget, pytest-xdist)
 * `build_conda_pkg`- builds and tests a conda package for QIIME 2 plugins:
     ```shell
